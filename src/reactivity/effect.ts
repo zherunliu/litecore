@@ -1,19 +1,27 @@
 import { extend } from "./shared/extend";
 
+let activeEffect;
+let shouldTrack;
+const targetMap = new Map();
 class ReactiveEffect {
   private _fn;
   deps = [];
   active = true;
   onStop?: () => void;
-  constructor(
-    fn,
-    public scheduler?,
-  ) {
+  scheduler?;
+  constructor(fn) {
     this._fn = fn;
   }
   run() {
+    if (!this.active) {
+      return this._fn();
+    }
+
+    shouldTrack = true;
     activeEffect = this;
-    return this._fn();
+    const res = this._fn();
+    shouldTrack = false;
+    return res;
   }
   stop() {
     if (this.active) {
@@ -30,10 +38,16 @@ function clearupEffect(effect) {
   effect.deps.forEach((dep: any) => {
     dep.delete(effect);
   });
+  effect.deps.length = 0;
 }
 
-const targetMap = new Map();
+function isTracking() {
+  return shouldTrack && activeEffect !== undefined;
+}
+
 export function track(target, key) {
+  if (!isTracking()) return;
+
   let depsMap = targetMap.get(target);
   if (!depsMap) {
     depsMap = new Map();
@@ -45,7 +59,7 @@ export function track(target, key) {
     depsMap.set(key, dep);
   }
 
-  if (!activeEffect) return;
+  if (dep.has(activeEffect)) return;
   dep.add(activeEffect);
   activeEffect.deps.push(dep);
 }
@@ -66,9 +80,8 @@ export function stop(runner) {
   runner.effect.stop();
 }
 
-let activeEffect;
 export function effect(fn, options: any = {}) {
-  const _effect = new ReactiveEffect(fn, options.scheduler);
+  const _effect = new ReactiveEffect(fn);
   extend(_effect, options);
   _effect.run();
   const runner: any = _effect.run.bind(_effect);
