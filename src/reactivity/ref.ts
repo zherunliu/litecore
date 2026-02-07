@@ -13,6 +13,7 @@ class RefImpl {
     this.dep = new Set();
   }
 
+  // 基本类型使用原生 getter setter 节省开销
   get value() {
     trackRefValue(this);
     return this._value;
@@ -47,4 +48,19 @@ export function isRef(ref) {
 
 export function unref(ref) {
   return isRef(ref) ? ref.value : ref;
+}
+
+export function proxyRef(objectWithRef) {
+  return new Proxy(objectWithRef, {
+    get(target, key) {
+      return unref(Reflect.get(target, key));
+    },
+    set(target, key, value) {
+      if (isRef(target[key]) && !isRef(value)) {
+        return (target[key].value = value);
+      } else {
+        return Reflect.set(target, key, value);
+      }
+    },
+  });
 }
