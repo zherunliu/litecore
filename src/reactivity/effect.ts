@@ -5,10 +5,10 @@ let shouldTrack;
 const targetMap = new Map();
 class ReactiveEffect {
   private _fn;
-  deps = [];
-  active = true;
-  onStop?: () => void;
-  scheduler?;
+  public deps = [];
+  public active = true;
+  public onStop?: () => void;
+  public scheduler?;
   constructor(fn) {
     this._fn = fn;
   }
