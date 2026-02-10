@@ -3,14 +3,15 @@ import { extend } from "./shared/extend";
 let activeEffect;
 let shouldTrack;
 const targetMap = new Map();
-class ReactiveEffect {
+export class ReactiveEffect {
   private _fn;
   public deps = [];
   public active = true;
   public onStop?: () => void;
   public scheduler?;
-  constructor(fn) {
+  constructor(fn, scheduler?) {
     this._fn = fn;
+    this.scheduler = scheduler;
   }
   run() {
     if (!this.active) {
