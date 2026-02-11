@@ -1,6 +1,6 @@
 import { track, trigger } from "./effect";
 import { reactive, readonly, ReactiveFlags } from "./reactive";
-import { isObject, extend } from "./shared/extend";
+import { isObject, extend } from "../shared/extend";
 
 /* Singleton */
 const get = createGetter();
