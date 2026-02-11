@@ -5,6 +5,7 @@ export function render(vNode, container) {
 }
 
 function patch(vNode, container) {
+  // TODO: processElement()
   processComponent(vNode, container);
 }
 

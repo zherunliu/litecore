@@ -1,3 +1,5 @@
+import { h } from "../../lib/lite-core.esm.js";
+
 export const App = {
   // template
   render() {
