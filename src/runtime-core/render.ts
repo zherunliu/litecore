@@ -4,8 +4,10 @@ export function render(vNode, container) {
   patch(vNode, container);
 }
 
+// recursion
 function patch(vNode, container) {
   // TODO: processElement()
+  console.log(vNode);
   processComponent(vNode, container);
 }
 
@@ -20,6 +22,6 @@ function mountComponent(vNode, container) {
 }
 
 function setupRenderEffect(instance, container) {
-  const subTree = instance.render;
+  const subTree = instance.render();
   patch(subTree, container);
 }

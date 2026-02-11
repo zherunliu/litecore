@@ -11,6 +11,7 @@ export function setupComponent(instance) {
 
   setupStatefulComponent(instance);
 }
+
 function setupStatefulComponent(instance) {
   const component = instance.type;
   const { setup } = component;
