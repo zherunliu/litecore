@@ -1,4 +1,5 @@
 import { h } from "../../lib/lite-core.esm.js";
+import { Foo } from "./Foo.js";
 window.self = null;
 export const App = {
   // template
@@ -15,7 +16,7 @@ export const App = {
           console.log("mousedown");
         },
       },
-      "hi, " + this.msg,
+      [h("div", {}, "hi, " + this.msg), h(Foo, { count: 1 })],
       // [(h("p", {}, "p1"), h("p", {}, "p2"))],
     );
   },

@@ -1,3 +1,4 @@
+import { isObject } from "../shared/extend";
 import {
   mutableHandler,
   readonlyHandler,
@@ -10,15 +11,15 @@ export const enum ReactiveFlags {
 }
 
 export function reactive(raw) {
-  return createActiveObject(raw, mutableHandler);
+  return createReactiveObject(raw, mutableHandler);
 }
 
 export function readonly(raw) {
-  return createActiveObject(raw, readonlyHandler);
+  return createReactiveObject(raw, readonlyHandler);
 }
 
 export function shallowReadonly(raw) {
-  return createActiveObject(raw, shallowReadonlyHandler);
+  return createReactiveObject(raw, shallowReadonlyHandler);
 }
 
 export function isReactive(value) {
@@ -33,6 +34,9 @@ export function isProxy(value) {
   return isReactive(value) || isReadonly(value);
 }
 
-function createActiveObject(raw: any, baseHandler) {
+function createReactiveObject(raw: any, baseHandler) {
+  if (!isObject(raw)) {
+    console.warn(`value cannot be made reactive: ${String(raw)}`);
+  }
   return new Proxy(raw, baseHandler);
 }
