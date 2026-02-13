@@ -32,7 +32,12 @@ function mountElement(vNode, container) {
 
   for (const key in props) {
     const val = props[key];
-    el.setAttribute(key, val);
+    if (key.startsWith("on")) {
+      const eventName = key.substring(2).toLowerCase();
+      el.addEventListener(eventName, val);
+    } else {
+      el.setAttribute(key, val);
+    }
   }
   container.append(el);
 }

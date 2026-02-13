@@ -6,7 +6,15 @@ export const App = {
     window.self = this;
     return h(
       "div",
-      { id: "root" },
+      {
+        id: "root",
+        onClick: () => {
+          console.log("click");
+        },
+        onMouseDown: () => {
+          console.log("mousedown");
+        },
+      },
       "hi, " + this.msg,
       // [(h("p", {}, "p1"), h("p", {}, "p2"))],
     );
