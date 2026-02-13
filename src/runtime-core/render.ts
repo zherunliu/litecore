@@ -1,4 +1,5 @@
 import { isObject } from "../shared/extend";
+import { ShapeFlags } from "../shared/ShapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
 
 export function render(vNode, container) {
@@ -7,9 +8,10 @@ export function render(vNode, container) {
 
 // recursion
 function patch(vNode, container) {
-  if (typeof vNode.type === "string") {
+  const { shapeFlags } = vNode;
+  if (shapeFlags & ShapeFlags.ELEMENT) {
     processElement(vNode, container);
-  } else if (isObject(vNode.type)) {
+  } else if (shapeFlags & ShapeFlags.STATEFUL_COMPONENT) {
     processComponent(vNode, container);
   }
 }
@@ -19,12 +21,12 @@ function processElement(vNode, container) {
 }
 
 function mountElement(vNode, container) {
-  const { type, props, children } = vNode;
+  const { type, props, children, shapeFlags } = vNode;
   const el: Element = (vNode.el = document.createElement(type));
 
-  if (typeof children === "string") {
+  if (shapeFlags & ShapeFlags.TEXT_CHILDREN) {
     el.textContent = children;
-  } else if (Array.isArray(children)) {
+  } else if (shapeFlags & ShapeFlags.ARRAY_CHILDREN) {
     mountChildren(vNode, el);
   }
 
