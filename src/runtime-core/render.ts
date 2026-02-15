@@ -1,6 +1,6 @@
-import { isObject } from "../shared/extend";
 import { ShapeFlags } from "../shared/ShapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
+import { Fragment } from "./createVNode";
 
 export function render(vNode, container) {
   patch(vNode, container);
@@ -8,12 +8,23 @@ export function render(vNode, container) {
 
 // recursion
 function patch(vNode, container) {
-  const { shapeFlags } = vNode;
-  if (shapeFlags & ShapeFlags.ELEMENT) {
-    processElement(vNode, container);
-  } else if (shapeFlags & ShapeFlags.STATEFUL_COMPONENT) {
-    processComponent(vNode, container);
+  const { type, shapeFlags } = vNode;
+
+  switch (type) {
+    case Fragment:
+      processFragment(vNode, container);
+      break;
+    default:
+      if (shapeFlags & ShapeFlags.ELEMENT) {
+        processElement(vNode, container);
+      } else if (shapeFlags & ShapeFlags.STATEFUL_COMPONENT) {
+        processComponent(vNode, container);
+      }
   }
+}
+
+function processFragment(vNode, container) {
+  mountChildren(vNode, container);
 }
 
 function processElement(vNode, container) {
