@@ -1,5 +1,6 @@
 import { h } from "../../lib/lite-core.esm.js";
 import { Foo } from "./Foo.js";
+import { createTextVNode } from "../../lib/lite-core.esm.js";
 
 export const App = {
   name: "App",
@@ -9,7 +10,10 @@ export const App = {
       Foo,
       {},
       {
-        header: ({ age }) => h("p", {}, `header, age: ${age}`),
+        header: ({ age }) => [
+          h("p", {}, `header, age: ${age}`),
+          createTextVNode("Hello, Rico!"),
+        ],
         footer: () => h("p", {}, "footer"),
       },
     );
