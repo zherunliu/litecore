@@ -4,13 +4,15 @@ import { shallowReadonly } from "../reactivity/reactive";
 import { emit } from "./componentEmit";
 import { initSlots } from "./componentSlots";
 
-export function createComponentInstance(vNode) {
+export function createComponentInstance(vNode, parent) {
   const component = {
     vNode,
     type: vNode.type,
     setupState: {},
     props: {},
     slots: {},
+    providers: parent ? parent.providers : {},
+    parent,
     emit: () => {},
   };
   component.emit = emit.bind(null, component) as any;
