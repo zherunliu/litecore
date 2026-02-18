@@ -12,40 +12,49 @@ export function createRenderer(options) {
   } = options;
 
   function render(vNode, container) {
-    patch(vNode, container, null);
+    patch(null, vNode, container, null);
   }
 
   // recursion
-  function patch(vNode, container, parentComponent) {
+  function patch(prevNode, vNode, container, parentComponent) {
     const { type, shapeFlags } = vNode;
 
     switch (type) {
       case Fragment:
-        processFragment(vNode, container, parentComponent);
+        processFragment(prevNode, vNode, container, parentComponent);
         break;
       case Text:
-        processText(vNode, container);
+        processText(prevNode, vNode, container);
         break;
       default:
         if (shapeFlags & ShapeFlags.ELEMENT) {
-          processElement(vNode, container, parentComponent);
+          processElement(prevNode, vNode, container, parentComponent);
         } else if (shapeFlags & ShapeFlags.STATEFUL_COMPONENT) {
-          processComponent(vNode, container, parentComponent);
+          processComponent(prevNode, vNode, container, parentComponent);
         }
     }
   }
 
-  function processFragment(vNode, container, parentComponent) {
+  function processFragment(prevNode, vNode, container, parentComponent) {
     mountChildren(vNode, container, parentComponent);
   }
 
-  function processText(vNode, container) {
+  function processText(prevNode, vNode, container) {
     const textNode = (vNode.el = document.createTextNode(vNode.children));
     container.append(textNode);
   }
 
-  function processElement(vNode, container, parentComponent) {
-    mountElement(vNode, container, parentComponent);
+  function processElement(prevNode, vNode, container, parentComponent) {
+    if (!prevNode) {
+      mountElement(vNode, container, parentComponent);
+    } else {
+      patchElement(prevNode, vNode, container);
+    }
+  }
+
+  function patchElement(prevNode, vNode, container) {
+    console.log("prev", prevNode);
+    console.log("vnode", vNode);
   }
 
   function mountElement(vNode, container, parentComponent) {
@@ -67,11 +76,11 @@ export function createRenderer(options) {
 
   function mountChildren(vNode, container, parentComponent) {
     vNode.children.forEach((v) => {
-      patch(v, container, parentComponent);
+      patch(null, v, container, parentComponent);
     });
   }
 
-  function processComponent(vNode, container, parentComponent) {
+  function processComponent(prevNode, vNode, container, parentComponent) {
     mountComponent(vNode, container, parentComponent);
   }
 
@@ -83,20 +92,23 @@ export function createRenderer(options) {
 
   function setupRenderEffect(instance, initialVNode, container) {
     effect(() => {
+      // init
       if (!instance.isMounted) {
         const { proxy } = instance;
         // bind context
         const subTree = (instance.subTree = instance.render.call(proxy));
-        patch(subTree, container, instance);
+        patch(null, subTree, container, instance);
         // root element
         initialVNode.el = subTree.el;
         instance.isMounted = true;
       } else {
+        // update
         const { proxy } = instance;
         // bind context
         const subTree = instance.render.call(proxy);
         const prevSubTree = instance.subTree;
         instance.subTree = subTree;
+        patch(prevSubTree, subTree, container, instance);
       }
     });
   }
