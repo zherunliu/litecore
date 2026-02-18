@@ -55,6 +55,28 @@ export function createRenderer(options) {
   function patchElement(prevNode, vNode, container) {
     console.log("prev", prevNode);
     console.log("vnode", vNode);
+    const oldProps = prevNode.props || {};
+    const newProps = vNode.props || {};
+    const el = (vNode.el = prevNode.el);
+    patchProps(el, oldProps, newProps);
+  }
+
+  function patchProps(el, oldProps, newProps) {
+    if (oldProps !== newProps) {
+      for (const key in newProps) {
+        const prevProp = oldProps[key];
+        const nextProp = newProps[key];
+        if (prevProp !== nextProp) {
+          hostPatchProp(el, key, prevProp, nextProp);
+        }
+      }
+
+      for (const key in oldProps) {
+        if (!(key in newProps)) {
+          hostPatchProp(el, key, oldProps[key], null);
+        }
+      }
+    }
   }
 
   function mountElement(vNode, container, parentComponent) {
@@ -69,7 +91,7 @@ export function createRenderer(options) {
 
     for (const key in props) {
       const val = props[key];
-      hostPatchProp(el, key, val);
+      hostPatchProp(el, key, null, val);
     }
     hostInsert(el, container);
   }
