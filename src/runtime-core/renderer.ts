@@ -1,3 +1,4 @@
+import { effect } from "../reactivity/effect";
 import { ShapeFlags } from "../shared/ShapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
 import { createAppApi } from "./createApp";
@@ -81,12 +82,23 @@ export function createRenderer(options) {
   }
 
   function setupRenderEffect(instance, initialVNode, container) {
-    const { proxy } = instance;
-    // bind context
-    const subTree = instance.render.call(proxy);
-    patch(subTree, container, instance);
-    // root element
-    initialVNode.el = subTree.el;
+    effect(() => {
+      if (!instance.isMounted) {
+        const { proxy } = instance;
+        // bind context
+        const subTree = (instance.subTree = instance.render.call(proxy));
+        patch(subTree, container, instance);
+        // root element
+        initialVNode.el = subTree.el;
+        instance.isMounted = true;
+      } else {
+        const { proxy } = instance;
+        // bind context
+        const subTree = instance.render.call(proxy);
+        const prevSubTree = instance.subTree;
+        instance.subTree = subTree;
+      }
+    });
   }
 
   return {
