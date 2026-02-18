@@ -4,7 +4,11 @@ import { createAppApi } from "./createApp";
 import { Fragment, Text } from "./createVNode";
 
 export function createRenderer(options) {
-  const { createElement, patchProp, insert } = options;
+  const {
+    createElement: hostCreateElement,
+    patchProp: hostPatchProp,
+    insert: hostInsert,
+  } = options;
 
   function render(vNode, container) {
     patch(vNode, container, null);
@@ -45,7 +49,7 @@ export function createRenderer(options) {
 
   function mountElement(vNode, container, parentComponent) {
     const { type, props, children, shapeFlags } = vNode;
-    const el: Element = (vNode.el = createElement(type));
+    const el: Element = (vNode.el = hostCreateElement(type));
 
     if (shapeFlags & ShapeFlags.TEXT_CHILDREN) {
       el.textContent = children;
@@ -55,10 +59,9 @@ export function createRenderer(options) {
 
     for (const key in props) {
       const val = props[key];
-      patchProp(el, key, val);
+      hostPatchProp(el, key, val);
     }
-    container.append(el);
-    insert(el, container);
+    hostInsert(el, container);
   }
 
   function mountChildren(vNode, container, parentComponent) {
