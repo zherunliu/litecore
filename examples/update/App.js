@@ -22,6 +22,7 @@ export const App = {
       props.value = {
         foo: "foo",
       };
+      // delete props.value.bar;
     };
     return {
       count,

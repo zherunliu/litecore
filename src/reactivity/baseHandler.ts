@@ -5,6 +5,7 @@ import { isObject, extend } from "../shared/extend";
 /* Singleton */
 const get = createGetter();
 const set = createSetter();
+const deleteProperty = createDeleteProperty();
 const readonlyGet = createGetter(true);
 const shallowReadonlyGet = createGetter(true, true);
 
@@ -39,9 +40,19 @@ function createSetter() {
   };
 }
 
+function createDeleteProperty() {
+  return function deleteProperty(target, key) {
+    const res = Reflect.deleteProperty(target, key);
+    // 触发更新
+    trigger(target, key);
+    return res;
+  };
+}
+
 export const mutableHandler = {
   get,
   set,
+  deleteProperty,
 };
 
 export const readonlyHandler = {
