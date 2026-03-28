@@ -1,5 +1,5 @@
 {
-  "name": "mini",
+  "name": "lite-core",
   "version": "1.0.0",
   "description": "",
   "main": "lib/lite-core.cjs.js",

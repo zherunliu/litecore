@@ -169,19 +169,18 @@ export function createRenderer(options) {
       }
       // 乱序
     } else {
-      let start = left;
-      const toBePatched = newRight - start + 1;
+      const toBePatched = newRight - left + 1;
       let patched = 0;
       const key2newIndexMap = new Map();
       const newIndex2oldIndex = new Array(toBePatched).fill(0);
       let moved = false;
       let maxNewIndexSoFar = 0;
 
-      for (let i = start; i <= newRight; i++) {
+      for (let i = left; i <= newRight; i++) {
         const curNewChild = newChildren[i];
         key2newIndexMap.set(curNewChild.key, i);
       }
-      for (let i = start; i <= oldRight; i++) {
+      for (let i = left; i <= oldRight; i++) {
         const curOldChild = oldChildren[i];
         if (patched >= toBePatched) {
           hostRemove(curOldChild.el);
@@ -191,7 +190,7 @@ export function createRenderer(options) {
         if (curOldChild.key != null) {
           newIndex = key2newIndexMap.get(curOldChild.key);
         } else {
-          for (let j = start; j <= newRight; j++) {
+          for (let j = left; j <= newRight; j++) {
             if (isSomeVNodeType(curOldChild, newChildren[j])) {
               newIndex = j;
               break;
@@ -206,7 +205,7 @@ export function createRenderer(options) {
           } else {
             moved = true;
           }
-          newIndex2oldIndex[newIndex - start] = i + 1;
+          newIndex2oldIndex[newIndex - left] = i + 1;
           patch(
             curOldChild,
             newChildren[newIndex],
@@ -222,7 +221,7 @@ export function createRenderer(options) {
         : [];
       let j = increasingNewIndexSequence.length - 1;
       for (let i = toBePatched - 1; i >= 0; i--) {
-        const nextIndex = i + start;
+        const nextIndex = i + left;
         const nextChild = newChildren[nextIndex];
         const anchor =
           nextIndex + 1 < newChildren.length

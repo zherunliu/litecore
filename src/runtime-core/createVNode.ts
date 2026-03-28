@@ -10,7 +10,7 @@ export function createVNode(type, props?, children?) {
     children,
     key: props && props.key,
     shapeFlags: getShapeFlags(type),
-    el: null,
+    el: null, // 真实 dom
   };
 
   if (typeof children === "string") {
