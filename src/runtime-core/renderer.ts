@@ -1,6 +1,7 @@
 import { effect } from "../reactivity/effect";
 import { ShapeFlags } from "../shared/ShapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
+import { shouldUpdateComponent } from "./componentUpdateUtils";
 import { createAppApi } from "./createApp";
 import { Fragment, Text } from "./createVNode";
 
@@ -296,17 +297,35 @@ export function createRenderer(options) {
     parentComponent,
     anchor,
   ) {
-    mountComponent(vNode, container, parentComponent, anchor);
+    if (!prevNode) {
+      mountComponent(vNode, container, parentComponent, anchor);
+    } else {
+      updateComponent(prevNode, vNode);
+    }
   }
 
   function mountComponent(initialVNode, container, parentComponent, anchor) {
-    const instance = createComponentInstance(initialVNode, parentComponent);
+    const instance = (initialVNode.component = createComponentInstance(
+      initialVNode,
+      parentComponent,
+    ));
     setupComponent(instance);
     setupRenderEffect(instance, initialVNode, container, anchor);
   }
 
+  function updateComponent(prevNode, vNode) {
+    const instance = (vNode.component = prevNode.component);
+    if (shouldUpdateComponent(prevNode, vNode)) {
+      instance.next = vNode;
+      instance.update();
+    } else {
+      vNode.el = prevNode.el;
+      instance.vNode = vNode;
+    }
+  }
+
   function setupRenderEffect(instance, initialVNode, container, anchor) {
-    effect(() => {
+    instance.update = effect(() => {
       // init
       if (!instance.isMounted) {
         const { proxy } = instance;
@@ -317,6 +336,11 @@ export function createRenderer(options) {
         initialVNode.el = subTree.el;
         instance.isMounted = true;
       } else {
+        const { next, vNode } = instance;
+        if (next) {
+          next.el = vNode.el;
+          updateComponentPreRender(instance, next);
+        }
         // update
         const { proxy } = instance;
         // bind context
@@ -331,6 +355,12 @@ export function createRenderer(options) {
   return {
     createApp: createAppApi(render),
   };
+}
+
+function updateComponentPreRender(instance, nextVNode) {
+  instance.vNode = nextVNode;
+  instance.next = null;
+  instance.props = nextVNode.props;
 }
 
 function getSequence(arr) {
