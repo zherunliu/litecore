@@ -114,12 +114,12 @@ export function createRenderer(options) {
 
     // 前序对比
     while (left <= oldRight && left <= newRight) {
-      const curOldVNode = oldChildren[left];
-      const curNewVNode = newChildren[left];
-      if (isSomeVNodeType(curOldVNode, curNewVNode)) {
+      const curOldChild = oldChildren[left];
+      const curNewChild = newChildren[left];
+      if (isSomeVNodeType(curOldChild, curNewChild)) {
         patch(
-          curOldVNode,
-          curNewVNode,
+          curOldChild,
+          curNewChild,
           container,
           parentComponent,
           parentAnchor,
@@ -169,6 +169,76 @@ export function createRenderer(options) {
       }
       // 乱序
     } else {
+      let start = left;
+      const toBePatched = newRight - start + 1;
+      let patched = 0;
+      const key2newIndexMap = new Map();
+      const newIndex2oldIndex = new Array(toBePatched).fill(0);
+      let moved = false;
+      let maxNewIndexSoFar = 0;
+
+      for (let i = start; i <= newRight; i++) {
+        const curNewChild = newChildren[i];
+        key2newIndexMap.set(curNewChild.key, i);
+      }
+      for (let i = start; i <= oldRight; i++) {
+        const curOldChild = oldChildren[i];
+        if (patched >= toBePatched) {
+          hostRemove(curOldChild.el);
+          continue;
+        }
+        let newIndex;
+        if (curOldChild.key != null) {
+          newIndex = key2newIndexMap.get(curOldChild.key);
+        } else {
+          for (let j = start; j <= newRight; j++) {
+            if (isSomeVNodeType(curOldChild, newChildren[j])) {
+              newIndex = j;
+              break;
+            }
+          }
+        }
+        if (newIndex === undefined) {
+          hostRemove(curOldChild.el);
+        } else {
+          if (newIndex >= maxNewIndexSoFar) {
+            maxNewIndexSoFar = newIndex;
+          } else {
+            moved = true;
+          }
+          newIndex2oldIndex[newIndex - start] = i + 1;
+          patch(
+            curOldChild,
+            newChildren[newIndex],
+            container,
+            parentComponent,
+            null,
+          );
+          patched++;
+        }
+      }
+      const increasingNewIndexSequence = moved
+        ? getSequence(newIndex2oldIndex)
+        : [];
+      let j = increasingNewIndexSequence.length - 1;
+      for (let i = toBePatched - 1; i >= 0; i--) {
+        const nextIndex = i + start;
+        const nextChild = newChildren[nextIndex];
+        const anchor =
+          nextIndex + 1 < newChildren.length
+            ? newChildren[nextIndex + 1].el
+            : null;
+        if (newIndex2oldIndex[i] === 0) {
+          patch(null, nextChild, container, parentComponent, anchor);
+        }
+        if (moved) {
+          if (j < 0 || i !== increasingNewIndexSequence[j]) {
+            hostInsert(nextChild.el, container, anchor);
+          } else {
+            j--;
+          }
+        }
+      }
     }
   }
 
@@ -262,4 +332,46 @@ export function createRenderer(options) {
   return {
     createApp: createAppApi(render),
   };
+}
+
+function getSequence(arr) {
+  const len = arr.length;
+  const prevIndices = arr.slice();
+  // 存储索引
+  const result = [0];
+  for (let i = 0; i < len; i++) {
+    if (arr[i] !== 0) {
+      const lastResultIdx = result.at(-1)!;
+      if (arr[lastResultIdx] < arr[i]) {
+        prevIndices[i] = lastResultIdx;
+        result.push(i);
+        continue;
+      }
+      // 查找第一个 >= 当前值的位置
+      let left = 0;
+      let right = result.length - 1;
+      while (left < right) {
+        const mid = (left + right) >> 1;
+        if (arr[result[mid]!] < arr[i]) {
+          left = mid + 1;
+        } else {
+          right = mid;
+        }
+      }
+      if (arr[i] < arr[result[left]!]) {
+        if (left > 0) {
+          prevIndices[i] = result[left - 1];
+        }
+        result[left] = i;
+      }
+    }
+  }
+  // 回溯修复贪心，得到正确序列
+  let curLen = result.length;
+  let lastIdx = result.at(-1)!;
+  while (curLen-- > 0) {
+    result[curLen] = lastIdx;
+    lastIdx = prevIndices[lastIdx];
+  }
+  return result;
 }

@@ -1,7 +1,24 @@
 import { ref, h } from "../../lib/lite-core.esm.js";
 
-const prevChildren = [h("div", {}, "A"), h("div", {}, "B"), h("div", {}, "C")];
-const nextChildren = [h("div", {}, "D"), h("div", {}, "E"), h("div", {}, "F")];
+const prevChildren = [
+  h("div", { key: "A" }, "A"),
+  h("div", { key: "B" }, "B"),
+  h("div", { key: "H" }, "H"),
+  h("div", { key: "C", id: "prev-c" }, "C"),
+  h("div", { key: "D" }, "D"),
+  h("div", { key: "G" }, "G"),
+  h("div", { key: "E" }, "E"),
+  h("div", { key: "F" }, "F"),
+];
+const nextChildren = [
+  h("div", { key: "A" }, "A"),
+  h("div", { key: "B" }, "B"),
+  h("div", { key: "D" }, "D"),
+  h("div", { key: "C", id: "next-c" }, "C"),
+  h("div", { key: "I" }, "I"),
+  h("div", { key: "E" }, "E"),
+  h("div", { key: "F" }, "F"),
+];
 
 export default {
   name: "ArrayToArray",
