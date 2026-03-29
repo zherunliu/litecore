@@ -1,4 +1,4 @@
-import { NodeTypes } from "./ast";
+import { NodeTypes, TagType } from "./ast";
 
 const openDelimiter = "{{";
 const closeDelimiter = "}}";
@@ -16,10 +16,16 @@ function createRoot(children) {
 
 function parseChildren(context) {
   const nodes: any[] = [];
-  if (context.source.startsWith(openDelimiter)) {
-    const node = parseInterpolation(context);
-    nodes.push(node);
+  const s = context.source;
+  let node;
+  if (s.startsWith(openDelimiter)) {
+    node = parseInterpolation(context);
+  } else if (s.startsWith("<")) {
+    if (/[a-z]/i.test(s[1])) {
+      node = parseElement(context);
+    }
   }
+  nodes.push(node);
   return nodes;
 }
 
@@ -37,6 +43,26 @@ function parseInterpolation(context) {
       content: content,
     },
   };
+}
+
+function parseElement(context) {
+  const element = parseTag(context, TagType.Start);
+  parseTag(context, TagType.End);
+  return element;
+}
+
+function parseTag(context, tagType: TagType) {
+  const match: any = /^<\/?([a-z]*)/i.exec(context.source);
+  const tag = match[1];
+  advanceBy(context, match[0].length + 1);
+  console.log(context.source);
+  if (tagType === TagType.Start) {
+    return {
+      type: NodeTypes.ELEMENT,
+      tag,
+      children: [],
+    };
+  }
 }
 
 function advanceBy(context, numberOfCharacters) {
