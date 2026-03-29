@@ -1,4 +1,9 @@
-import { NodeTypes, TagType } from "./ast";
+import { NodeTypes } from "./ast";
+
+const enum TagType {
+  Start,
+  End,
+}
 
 const openDelimiter = "{{";
 const closeDelimiter = "}}";
@@ -24,6 +29,8 @@ function parseChildren(context) {
     if (/[a-z]/i.test(s[1])) {
       node = parseElement(context);
     }
+  } else {
+    node = parseText(context);
   }
   nodes.push(node);
   return nodes;
@@ -55,7 +62,6 @@ function parseTag(context, tagType: TagType) {
   const match: any = /^<\/?([a-z]*)/i.exec(context.source);
   const tag = match[1];
   advanceBy(context, match[0].length + 1);
-  console.log(context.source);
   if (tagType === TagType.Start) {
     return {
       type: NodeTypes.ELEMENT,
@@ -63,6 +69,15 @@ function parseTag(context, tagType: TagType) {
       children: [],
     };
   }
+}
+
+function parseText(context) {
+  const content = context.source;
+  advanceBy(context, content.length);
+  return {
+    type: NodeTypes.TEXT,
+    content,
+  };
 }
 
 function advanceBy(context, numberOfCharacters) {
