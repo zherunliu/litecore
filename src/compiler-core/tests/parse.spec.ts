@@ -3,7 +3,7 @@ import { baseParse } from "../src/parse";
 
 describe("Parse", () => {
   describe("interpolation", () => {
-    test("simple interpolation", () => {
+    it("simple interpolation", () => {
       const ast = baseParse("{{ message }}");
       expect(ast.children[0]).toStrictEqual({
         type: NodeTypes.INTERPOLATION,
@@ -16,7 +16,7 @@ describe("Parse", () => {
   });
 
   describe("element", () => {
-    test("simple element", () => {
+    it("simple element", () => {
       const ast = baseParse("<div></div>");
       expect(ast.children[0]).toStrictEqual({
         type: NodeTypes.ELEMENT,
@@ -27,12 +27,47 @@ describe("Parse", () => {
   });
 
   describe("text", () => {
-    test("simple text", () => {
+    it("simple text", () => {
       const ast = baseParse("some text");
       expect(ast.children[0]).toStrictEqual({
         type: NodeTypes.TEXT,
         content: "some text",
       });
     });
+  });
+
+  describe("nested element", () => {
+    it("should parse nested elements correctly", () => {
+      const ast = baseParse("<div><p>hi</p>{{ message }}</div>");
+      expect(ast.children[0]).toStrictEqual({
+        type: NodeTypes.ELEMENT,
+        tag: "div",
+        children: [
+          {
+            type: NodeTypes.ELEMENT,
+            tag: "p",
+            children: [
+              {
+                type: NodeTypes.TEXT,
+                content: "hi",
+              },
+            ],
+          },
+          {
+            type: NodeTypes.INTERPOLATION,
+            content: {
+              type: NodeTypes.SIMPLE_EXPRESSION,
+              content: "message",
+            },
+          },
+        ],
+      });
+    });
+  });
+
+  test("should throw error when end tag is missing", () => {
+    expect(() => {
+      baseParse("<div><p></div>");
+    }).toThrow("missing end tag: p");
   });
 });
