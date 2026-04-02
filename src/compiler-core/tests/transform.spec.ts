@@ -15,7 +15,6 @@ describe("transform", () => {
     transform(ast, { nodeTransforms: [plugin] });
     const nodeText = ast.children[0].children[0];
     expect(nodeText.content).toBe("hello, world");
-    console.log(ast);
     const nodeText2 = ast.children[0].children[2].children[0];
     expect(nodeText2.content).toBe("hi, world");
   });
