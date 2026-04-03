@@ -40,6 +40,10 @@
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
-    "skipLibCheck": true
-  }
+    "skipLibCheck": true,
+    "paths": {
+      "@lite-core/*": ["./packages/*/src"]
+    }
+  },
+  "include": ["packages/*/src", "packages/*/__tests__"]
 }
