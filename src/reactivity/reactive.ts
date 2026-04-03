@@ -1,4 +1,4 @@
-import { isObject } from "../shared/extend";
+import { isObject } from "../shared";
 import {
   mutableHandler,
   readonlyHandler,

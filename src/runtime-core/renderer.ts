@@ -332,7 +332,10 @@ export function createRenderer(options) {
         if (!instance.isMounted) {
           const { proxy } = instance;
           // bind context
-          const subTree = (instance.subTree = instance.render.call(proxy));
+          const subTree = (instance.subTree = instance.render.call(
+            proxy,
+            proxy,
+          ));
           patch(null, subTree, container, instance, anchor);
           // root element
           initialVNode.el = subTree.el;
@@ -346,7 +349,7 @@ export function createRenderer(options) {
           // update
           const { proxy } = instance;
           // bind context
-          const subTree = instance.render.call(proxy);
+          const subTree = instance.render.call(proxy, proxy);
           const prevSubTree = instance.subTree;
           instance.subTree = subTree;
           patch(prevSubTree, subTree, container, instance, anchor);
